@@ -36,8 +36,8 @@ if not GOOGLE_API_KEY:
         "GOOGLE_API_KEY not set. Run: export GOOGLE_API_KEY='your-key-here'"
     )
 
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
-print("[System] Gemini 2.5 Flash initialized | temperature=0")
+llm = ChatGoogleGenerativeAI(model="gemini-3.8-flash", temperature=0)
+print("[System] Gemini 3.8 Flash initialized | temperature=0")
 
 # ── ReAct Constants (Session 3) ─────────────────────────────────────────────
 MAX_ITERATIONS    = 5
