@@ -486,7 +486,7 @@ def classify_node(state: SupportState) -> dict:
     ])
 
     # Layer 1 — normalize
-    raw = response.content.strip().lower().rstrip(".,!?")
+    raw = response.content[0].get('text').strip().lower().rstrip(".,!?")
 
     # Layer 2 — validate
     VALID = {"technical", "billing", "fraud", "general"}
