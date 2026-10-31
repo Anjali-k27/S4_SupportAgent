@@ -36,17 +36,24 @@ if not OPENROUTER_API_KEY:
         "OPENROUTER_API_KEY not set. Run: export OPENROUTER_API_KEY='your-key-here'"
     )
 
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "openai/gpt-4o-mini")
+OPENROUTER_SITE_URL = os.environ.get(
+    "OPENROUTER_SITE_URL",
+    "https://github.com/Anjali-k27/S4_SupportAgent",
+)
+OPENROUTER_APP_NAME = os.environ.get("OPENROUTER_APP_NAME", "S4_SupportAgent")
+
 llm = ChatOpenAI(
-    model="openai/gpt-4o-mini",
+    model=OPENROUTER_MODEL,
     api_key=OPENROUTER_API_KEY,
     base_url="https://openrouter.ai/api/v1",
     temperature=0,
     default_headers={
-        "HTTP-Referer": "https://github.com/Anjali-k27/S4_SupportAgent",
-        "X-Title": "S4_SupportAgent",
+        "HTTP-Referer": OPENROUTER_SITE_URL,
+        "X-Title": OPENROUTER_APP_NAME,
     },
 )
-print("[System] OpenRouter initialized | model=openai/gpt-4o-mini | temperature=0")
+print(f"[System] OpenRouter initialized | model={OPENROUTER_MODEL} | temperature=0")
 
 # ── ReAct Constants (Session 3) ─────────────────────────────────────────────
 MAX_ITERATIONS    = 5
@@ -65,9 +72,9 @@ checkpointer = SqliteSaver(_db_conn)
 print(f"[Checkpointer] SQLite initialized → {DB_PATH}")
 
 
-# ════════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════�[...]
 # SECTION 2: STATE SCHEMA
-# ════════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════�[...]
 
 class SupportState(TypedDict):
 
@@ -169,4 +176,4 @@ MOCK_CRM = {
     },
 }
 
-# ... entire file continues unchanged below, but with the OpenRouter setup above and classification fix below ...
+# ... entire file continues unchanged below ...
