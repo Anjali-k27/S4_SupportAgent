@@ -1,6 +1,6 @@
 # Enterprise AI Support Platform — Session 4: Persistence & Threading
 
-Session 4 of 12 in a structured build of a production-grade AI support agent using LangGraph + Gemini 2.5 Flash. This session adds SQLite-backed conversation persistence and multi-thread isolation, making the agent stateful across requests and process restarts.
+Session 4 of 12 in a structured build of a production-grade AI support agent using LangGraph + OpenRouter. This session adds SQLite-backed conversation persistence and multi-thread isolation, while using an OpenAI-compatible LLM routed through OpenRouter.
 
 ---
 
@@ -28,6 +28,7 @@ session4/
 ├── index.html         # Single-file frontend
 ├── verify_s4.js       # Playwright end-to-end verification suite (30 checks)
 ├── requirements.txt   # Python dependencies
+├── .env               # OpenRouter API key (not committed)
 └── support.db         # SQLite database (auto-created on first run)
 ```
 
@@ -37,7 +38,7 @@ session4/
 
 - Python 3.10+
 - Node.js 18+ (only needed to run the Playwright verification suite)
-- A Google AI API key with Gemini 2.5 Flash access
+- An OpenRouter API key with access to `openai/gpt-4o-mini`
 
 ---
 
@@ -53,9 +54,9 @@ Key packages and why they're here:
 |---|---|
 | `langgraph==1.2.0` | Graph execution engine |
 | `langgraph-checkpoint-sqlite` | SQLite checkpointer for persistence |
-| `langchain-google-genai` | Gemini 2.5 Flash LLM binding |
+| `langchain-openai` | OpenRouter-compatible LLM client for `ChatOpenAI` |
 | `fastapi` + `uvicorn` | HTTP server and SSE streaming |
-| `python-dotenv` | Load `GOOGLE_API_KEY` from `.env` |
+| `python-dotenv` | Load `OPENROUTER_API_KEY` from `.env` |
 
 ---
 
@@ -64,13 +65,13 @@ Key packages and why they're here:
 Create a `.env` file in the project directory:
 
 ```bash
-echo "GOOGLE_API_KEY=your-key-here" > .env
+echo "OPENROUTER_API_KEY=your-key-here" > .env
 ```
 
 Or export it in your shell:
 
 ```bash
-export GOOGLE_API_KEY="your-key-here"
+export OPENROUTER_API_KEY="your-key-here"
 ```
 
 ---
@@ -84,7 +85,7 @@ python api.py
 You should see startup output like:
 
 ```
-[System] Gemini 2.5 Flash initialized | temperature=0
+[System] OpenRouter initialized | model=openai/gpt-4o-mini | temperature=0
 [ReAct] MAX_ITERATIONS=5 | CONTEXT_THRESHOLD=12
 [Checkpointer] SQLite initialized → support.db
 [System] SupportState schema — 17 fields across 12 sessions
@@ -244,7 +245,7 @@ curl http://localhost:8000/api/history/YOUR-THREAD-UUID
 
 ### Why `SqliteSaver` is initialized directly (not via `from_conn_string`)
 
-`from_conn_string` is a Python context manager — it yields the saver and then closes the connection when the `with` block exits. At module level there is no `with` block, so the connection closes immediately. The correct pattern:
+`from_conn_string` is a Python context manager — it yields the saver and then closes the connection when the `with` block exits. At module level there is no `with` block, so the connection closes too early if you use it there.
 
 ```python
 import sqlite3
@@ -299,7 +300,7 @@ snap.config          # dict — contains checkpoint_id under configurable
 
 ```
                     ┌─────────────┐
-                    │classify_node│  Gemini classifies → technical/billing/fraud/general
+                    │classify_node│  OpenRouter LLM classifies → technical/billing/fraud/general
                     └──────┬──────┘
            ┌───────────────┼───────────────┐
            ▼               ▼               ▼
@@ -345,4 +346,272 @@ Runs 30 automated checks covering every UI element, the full submit flow, follow
 | 5 | Context Management & Summarization | 🔜 Next |
 | 6–12 | Safety, evaluation, multi-agent, HITL, production hardening | Planned |
 
-Session 5 will add a `summarization_node` that compresses long conversation histories into a `system_summary` string before they hit the context window limit. The `SqliteSaver` checkpointer, `thread_id` patterns, and all Session 4 functions remain unchanged.
+Session 5 will add a `summarization_node` that compresses long conversation histories into a `system_summary` string before they hit the context window limit. The `SqliteSaver` checkpointer, `thread_id` isolation, and persistent state remain the foundation for all later sessions.
+
+---
+
+## Using OpenRouter
+
+This project is configured to call OpenRouter with the OpenAI-compatible endpoint:
+
+```python
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI(
+    model="openai/gpt-4o-mini",
+    api_key=os.environ["OPENROUTER_API_KEY"],
+    base_url="https://openrouter.ai/api/v1",
+    default_headers={
+        "HTTP-Referer": "https://github.com/Anjali-k27/S4_SupportAgent",
+        "X-Title": "S4_SupportAgent",
+    },
+)
+```
+
+To use another model through OpenRouter, change the `model` field to a provider/model string such as `anthropic/claude-3.5-sonnet` or `meta-llama/llama-3.1-70b-instruct`.
+
+---
+
+## Troubleshooting
+
+If the app fails to start:
+
+- Ensure `.env` contains `OPENROUTER_API_KEY`
+- Verify your API key has access to the selected model
+- Confirm your OpenRouter account has credits or usage available
+- Reinstall dependencies with `pip install -r requirements.txt`
+
+---
+
+# End of README
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
