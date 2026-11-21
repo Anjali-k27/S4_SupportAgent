@@ -11,6 +11,7 @@ Run CLI:    python support_agent.py
 """
 
 import os
+import sys
 import time
 import operator
 import json
@@ -18,26 +19,37 @@ import uuid
 import sqlite3
 from typing import TypedDict, Annotated, Literal, Any
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 from dotenv import load_dotenv
 load_dotenv()
 
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, ToolMessage
 from langchain_core.tools import tool
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 from langgraph.checkpoint.sqlite import SqliteSaver
 
 # ── Environment setup ──────────────────────────────────────────────────────────
-GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
-if not GOOGLE_API_KEY:
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
+if not OPENROUTER_API_KEY:
     raise EnvironmentError(
-        "GOOGLE_API_KEY not set. Run: export GOOGLE_API_KEY='your-key-here'"
+        "OPENROUTER_API_KEY not set. Run: export OPENROUTER_API_KEY='your-key-here'"
     )
 
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
-print("[System] Gemini 2.5 Flash initialized | temperature=0")
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "openai/gpt-4o-mini")
+llm = ChatOpenAI(
+    model=OPENROUTER_MODEL,
+    temperature=0,
+    api_key=OPENROUTER_API_KEY,
+    base_url="https://openrouter.ai/api/v1",
+)
+print(f"[System] OpenRouter model initialized: {OPENROUTER_MODEL} | temperature=0")
 
 # ── ReAct Constants (Session 3) ─────────────────────────────────────────────
 MAX_ITERATIONS    = 5
